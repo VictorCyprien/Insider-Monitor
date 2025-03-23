@@ -102,7 +102,29 @@ func main() {
 	}
 
 	// Initialize storage
-	storage := storage.New("./data")
+	var storageProvider storage.StorageInterface
+	if cfg.Database != nil && cfg.Database.Enabled {
+		// Convert config.Database to storage.Config
+		dbConfig := &storage.Config{
+			Enabled:  cfg.Database.Enabled,
+			Type:     cfg.Database.Type,
+			Host:     cfg.Database.Host,
+			Port:     cfg.Database.Port,
+			User:     cfg.Database.User,
+			Password: cfg.Database.Password,
+			DBName:   cfg.Database.DBName,
+		}
+		
+		storageProvider, err = storage.NewStorage("./data", dbConfig)
+		if err != nil {
+			log.Fatalf("Failed to initialize database storage: %v", err)
+		}
+		log.Printf("Using %s database storage", cfg.Database.Type)
+	} else {
+		// Use file-based storage
+		storageProvider, _ = storage.NewStorage("./data", nil)
+		log.Println("Using file-based storage")
+	}
 
 	// If web mode, start the web server
 	if *webMode {
@@ -115,7 +137,7 @@ func main() {
 				log.Fatalf("Web mode requires the real wallet monitor, not a mock")
 			}
 
-			webServer := web.NewServer(cfg, walletMonitor, storage, *webPort)
+			webServer := web.NewServer(cfg, walletMonitor, storageProvider, *webPort)
 			if err := webServer.Start(); err != nil {
 				log.Fatalf("Failed to start web server: %v", err)
 			}
@@ -123,10 +145,10 @@ func main() {
 	}
 
 	// Start the monitor
-	runMonitor(scanner, alerter, cfg, scanInterval, storage)
+	runMonitor(scanner, alerter, cfg, scanInterval, storageProvider)
 }
 
-func runMonitor(scanner WalletScanner, alerter alerts.Alerter, cfg *config.Config, scanInterval time.Duration, storage *storage.Storage) {
+func runMonitor(scanner WalletScanner, alerter alerts.Alerter, cfg *config.Config, scanInterval time.Duration, storage storage.StorageInterface) {
 	// Create buffered channels for graceful shutdown
 	interrupt := make(chan os.Signal, 1)
 	done := make(chan bool, 1)

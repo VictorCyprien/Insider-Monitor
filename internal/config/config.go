@@ -28,8 +28,9 @@ type Config struct {
 		WebhookURL string `json:"webhook_url"`
 		ChannelID  string `json:"channel_id"`
 	} `json:"discord"`
-	mu       sync.RWMutex `json:"-"` // Exclude from JSON
-	filepath string       `json:"-"` // Exclude from JSON
+	Database     *DatabaseConfig `json:"database,omitempty"`
+	mu           sync.RWMutex    `json:"-"` // Exclude from JSON
+	filepath     string          `json:"-"` // Exclude from JSON
 }
 
 type AlertConfig struct {
@@ -48,6 +49,17 @@ type DiscordConfig struct {
 	Enabled    bool   `json:"enabled"`
 	WebhookURL string `json:"webhook_url"`
 	ChannelID  string `json:"channel_id"`
+}
+
+// DatabaseConfig holds database connection configuration
+type DatabaseConfig struct {
+	Enabled  bool   `json:"enabled"`
+	Type     string `json:"type"`     // "postgres", etc.
+	Host     string `json:"host"`     // Database host
+	Port     int    `json:"port"`     // Database port
+	User     string `json:"user"`     // Database user
+	Password string `json:"password"` // Database password
+	DBName   string `json:"dbname"`   // Database name
 }
 
 // WalletConfig holds wallet-specific configuration

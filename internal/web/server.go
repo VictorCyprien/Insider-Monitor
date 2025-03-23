@@ -29,7 +29,7 @@ var content embed.FS
 type Server struct {
 	config     *config.Config
 	monitor    *monitor.WalletMonitor
-	storage    *storage.Storage
+	storage    storage.StorageInterface
 	router     *mux.Router
 	templates  *template.Template
 	walletData map[string]*WalletData
@@ -86,7 +86,7 @@ func convertMonitorData(monitorData map[string]*monitor.WalletData) map[string]*
 }
 
 // NewServer creates a new web server
-func NewServer(cfg *config.Config, monitor *monitor.WalletMonitor, storage *storage.Storage, port int) *Server {
+func NewServer(cfg *config.Config, monitor *monitor.WalletMonitor, storage storage.StorageInterface, port int) *Server {
 	router := mux.NewRouter()
 	authService := auth.New()
 

@@ -200,6 +200,29 @@ func (w *WalletMonitor) GetWalletData(wallet solana.PublicKey) (*WalletData, err
 		LastScanned:   time.Now(),
 	}
 
+	// Get native SOL balance
+	solBalance, err := w.client.GetBalance(
+		context.Background(),
+		wallet,
+		rpc.CommitmentFinalized,
+	)
+	if err != nil {
+		log.Printf("warning: failed to get native SOL balance: %v", err)
+	} else if solBalance.Value > 0 {
+		// Add native SOL as a token with the wrapped SOL mint address
+		solTokenMint := "So11111111111111111111111111111111111111112"
+		
+		// Check if SOL should be included based on scan config
+		if w.shouldIncludeToken(walletAddr, solTokenMint) {
+			walletData.TokenAccounts[solTokenMint] = TokenAccountInfo{
+				Balance:     solBalance.Value,
+				LastUpdated: time.Now(),
+				Symbol:      "SOL",
+				Decimals:    9,
+			}
+		}
+	}
+
 	// Use the retry version instead
 	accounts, err := w.getTokenAccountsWithRetry(wallet)
 	if err != nil {

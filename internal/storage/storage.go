@@ -11,18 +11,21 @@ import (
 	"github.com/accursedgalaxy/insider-monitor/internal/monitor"
 )
 
-type Storage struct {
+// FileStorage stores data in JSON files
+type FileStorage struct {
 	dataDir string
 }
 
-func New(dataDir string) *Storage {
+// New creates a new FileStorage instance
+func New(dataDir string) *FileStorage {
 	if err := os.MkdirAll(dataDir, 0755); err != nil {
 		log.Printf("warning: failed to create data directory: %v", err)
 	}
-	return &Storage{dataDir: dataDir}
+	return &FileStorage{dataDir: dataDir}
 }
 
-func (s *Storage) SaveWalletData(data map[string]*monitor.WalletData) error {
+// SaveWalletData saves wallet data to a JSON file
+func (s *FileStorage) SaveWalletData(data map[string]*monitor.WalletData) error {
 	// Ensure directory exists before saving
 	if err := os.MkdirAll(s.dataDir, 0755); err != nil {
 		return fmt.Errorf("failed to create data directory: %w", err)
@@ -36,7 +39,8 @@ func (s *Storage) SaveWalletData(data map[string]*monitor.WalletData) error {
 	return os.WriteFile(path, file, 0644)
 }
 
-func (s *Storage) LoadWalletData() (map[string]*monitor.WalletData, error) {
+// LoadWalletData loads wallet data from a JSON file
+func (s *FileStorage) LoadWalletData() (map[string]*monitor.WalletData, error) {
 	path := filepath.Join(s.dataDir, "wallet_data.json")
 
 	// Create storage directory if it doesn't exist
@@ -70,7 +74,8 @@ func (s *Storage) LoadWalletData() (map[string]*monitor.WalletData, error) {
 	return data, nil
 }
 
-func (s *Storage) IsDataValid() bool {
+// IsDataValid checks if the data file exists and has valid content
+func (s *FileStorage) IsDataValid() bool {
 	data, err := s.LoadWalletData()
 	if err != nil {
 		return false
@@ -78,13 +83,19 @@ func (s *Storage) IsDataValid() bool {
 	return len(data) > 0
 }
 
-func (s *Storage) BackupCurrentData() error {
+// BackupCurrentData creates a backup of the current data file
+func (s *FileStorage) BackupCurrentData() error {
 	currentData, err := s.LoadWalletData()
 	if err != nil {
 		return err
 	}
 
-	backupPath := filepath.Join(s.dataDir, fmt.Sprintf("wallet_data_backup_%d.json", time.Now().Unix()))
+	backupDir := filepath.Join(s.dataDir, "backups")
+	if err := os.MkdirAll(backupDir, 0755); err != nil {
+		return fmt.Errorf("failed to create backup directory: %w", err)
+	}
+
+	backupPath := filepath.Join(backupDir, fmt.Sprintf("wallet_data_backup_%d.json", time.Now().Unix()))
 	file, err := json.MarshalIndent(currentData, "", "  ")
 	if err != nil {
 		return err
