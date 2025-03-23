@@ -35,3 +35,8 @@ Thumbs.db
 
 # Enviroment
 .env
+
+.cursorrules
+.cursor/rules
+.scripts/
+.specstory/
