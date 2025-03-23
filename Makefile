@@ -24,7 +24,10 @@ clean:
 	rm -rf data/*.log
 
 run:
-	$(GOCMD) run cmd/monitor/main.go
+	$(GOCMD) run cmd/monitor/main.go -web
+
+run-api:
+	$(GOCMD) run cmd/api/main.go
 
 run-test:
 	$(GOCMD) run cmd/monitor/main.go -test
