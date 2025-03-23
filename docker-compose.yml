@@ -9,4 +9,26 @@ services:
     restart: unless-stopped
     environment:
       - TZ=UTC
-    command: ["-config", "/app/config.json"] 
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=insider
+      - DB_PASSWORD=insiderpass
+      - DB_NAME=insiderdb
+    command: ["-test"]
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:14
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=insider
+      - POSTGRES_PASSWORD=insiderpass
+      - POSTGRES_DB=insiderdb
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+volumes:
+  postgres_data: 
